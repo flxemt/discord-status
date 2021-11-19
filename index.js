@@ -1,3 +1,4 @@
+import http from 'http';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import dictionary from './dictionary.js';
@@ -37,3 +38,9 @@ async function applyInfo() {
 }
 
 setInterval(applyInfo, 5 * 1000);
+
+http
+  .createServer((req, res) => {
+    res.end('Hello');
+  })
+  .listen(5000);
