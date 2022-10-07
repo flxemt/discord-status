@@ -1,46 +1,30 @@
-import http from 'http';
-import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-import dictionary from './dictionary.js';
+import makeRequest from './request.js';
+import settings from './settings.js';
 
-const baseURL = 'https://discord.com/api/v9';
 dotenv.config();
+const baseURL = 'https://discord.com/api/v9';
 
 let currentWord = 0;
 
 async function applyInfo() {
-  const updatedParams = {
+  const updatedData = {
     custom_status: {
-      text: dictionary[currentWord],
-      emoji_name: '🚀',
-      expires_at: new Date(Date.now() + 10 * 1000).toISOString()
+      text: settings.text[currentWord],
+      emoji_name: settings.emoji,
+      expires_at: new Date(Date.now() + (settings.interval + 5) * 1000).toISOString()
     }
   };
 
-  const requestParams = {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: process.env.ACCESS_TOKEN
-    },
-    body: JSON.stringify(updatedParams)
-  };
-
   try {
-    const response = await fetch(`${baseURL}/users/@me/settings`, requestParams);
-    const data = await response.json();
-    console.log(data.custom_status);
+    await makeRequest(baseURL, process.env.ACCESS_TOKEN, updatedData);
     currentWord++;
-    if (currentWord >= dictionary.length) currentWord = 0;
+    if (currentWord >= settings.text.length) currentWord = 0;
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    process.exit(1);
   }
 }
 
-setInterval(applyInfo, 5 * 1000);
-
-http
-  .createServer((req, res) => {
-    res.end('Hello');
-  })
-  .listen(5000);
+console.log('\x1b[36m%s\x1b[0m', 'The script has started!');
+setInterval(applyInfo, settings.interval * 1000);
